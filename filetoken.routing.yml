@@ -1,0 +1,7 @@
+filetoken.imgsrc:
+  path: 'getfilesrc/{args1}'
+  defaults:
+    _controller: '\Drupal\filetoken\Controller\FileStream::filesrc'
+    _title: 'get image'
+  requirements:
+    _permission: 'access content'

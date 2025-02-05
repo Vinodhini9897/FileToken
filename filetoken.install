@@ -1,0 +1,91 @@
+<?php
+
+/**
+ * @file
+ * Provides schema and hooks for the File Token module.
+ */
+
+use Drupal\Core\Entity\EntityTypeInterface;
+use Drupal\Core\Config\Entity\ConfigEntityStorage;
+use Drupal\Core\Messenger\MessengerInterface;
+
+/**
+ * Implements hook_schema().
+ */
+function filetoken_schema() {
+  return [
+    'filetoken_list' => [
+      'description' => 'List of tokens for file access.',
+      'fields' => [
+        'token' => [
+          'type' => 'varchar_ascii',
+          'length' => 32,
+          'not null' => TRUE,
+          'description' => 'Unique token identifier.',
+        ],
+        'entity_id' => [
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+          'description' => 'ID of the associated entity.',
+        ],
+        'image_url' => [
+          'type' => 'varchar_ascii',
+          'length' => ConfigEntityStorage::MAX_ID_LENGTH,
+          'not null' => TRUE,
+          'description' => 'URL of the entity image.',
+        ],
+        'exp_timestamp' => [
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+          'description' => 'Expiration timestamp of the token.',
+        ],
+        'request_timestamp' => [
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+          'description' => 'Timestamp when the request was made.',
+        ],
+        'last_updated' => [
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => FALSE,
+          'description' => 'The UNIX timestamp of the last update.',
+        ],
+      ],
+      'primary key' => ['token', 'entity_id'],
+      'indexes' => [
+        'token_last_updated' => ['token', 'last_updated'],
+      ],
+    ],
+  ];
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function filetoken_uninstall() {
+  \Drupal::messenger()->addMessage(t('File Token module has been uninstalled.'), MessengerInterface::TYPE_STATUS);
+}
+
+/**
+ * Implements hook_requirements().
+ */
+function filetoken_requirements($phase) {
+  $requirements = [];
+
+  if ($phase === 'runtime') {
+    // Check for missing dependencies.
+    if (!\Drupal::moduleHandler()->moduleExists('file')) {
+      $requirements['filetoken_module'] = [
+        'title' => t('File Module Requirement'),
+        'value' => t('Missing'),
+        'severity' => REQUIREMENT_ERROR,
+        'description' => t('The File module is required for File Token to work properly.'),
+      ];
+    }
+  }
+
+  return $requirements;
+}
